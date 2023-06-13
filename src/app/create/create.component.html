@@ -1,0 +1,5 @@
+<div class="left">
+  <input type="text" placeholder="new fact" #text>
+  <div *ngIf="isAdding; else button">Adding new fact...</div>
+  <ng-template #button><button (click)="add(text.value)">Add a Fact</button></ng-template>
+</div>

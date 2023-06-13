@@ -1,0 +1,11 @@
+<div class="right">
+  <h3>Cat Facts</h3>
+  <div class="loading'" *ngIf="(facts$|async)?.status === 1">Loading...</div>
+  <div class="error'" *ngIf="(facts$|async)?.status === 3">Error!!!</div>
+  <ul class="facts" [ngClass]="{deleting: isDeleting}" *ngIf="(facts$|async)?.status === 2">
+    <li class="link" (click)="delete(fact)" *ngFor="let fact of (facts$|async)?.facts">
+      {{ fact.text }}
+    </li>
+  </ul>
+  <div class="error'" *ngIf="isDeleting">Deleting a fact...</div>
+</div>
