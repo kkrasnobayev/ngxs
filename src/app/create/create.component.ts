@@ -1,9 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Select, Store} from "@ngxs/store";
-import {AddFact} from "../store/facts/facts.actions";
 import {FactsState, FactsStateModel} from "../store/facts/facts.state";
 import {Observable} from "rxjs";
+import {Facts} from "../store/facts/facts.actions";
 
 @Component({
   selector: 'app-create',
@@ -26,7 +26,7 @@ export class CreateComponent implements OnInit {
 
   add(text: string): void {
     this.isAdding = true;
-    this.store.dispatch(new AddFact({text: text, _id: new Date().getTime().toString()}))
+    this.store.dispatch(new Facts.Add({text: text, _id: new Date().getTime().toString()}))
   }
 
 }

@@ -3,8 +3,8 @@ import {CommonModule} from '@angular/common';
 import {Select, Store} from "@ngxs/store";
 import {Observable} from "rxjs";
 import {FactsState, FactsStateModel} from "../store/facts/facts.state";
-import {GetFacts} from "../store/facts/facts.actions";
 import {storageModelStates} from "../globals/enums";
+import {Facts} from "../store/facts/facts.actions";
 
 @Component({
   selector: 'app-counter',
@@ -19,13 +19,12 @@ export class CounterComponent implements OnInit {
   count?: number
 
   constructor(private store: Store) {
-    this.store.dispatch(new GetFacts());
+    this.store.dispatch(new Facts.Get());
   }
 
   ngOnInit(): void {
 
     this.facts$?.subscribe((data: FactsStateModel) => {
-      console.log(data);
 
       /**
        * only update count is state is loaded

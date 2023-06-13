@@ -3,100 +3,102 @@ import {storageModelStates} from "../../globals/enums";
 import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 import {FactModel} from "../../models/fact.model";
-import {AddFact, GetFacts, RemoveFact} from "./facts.actions";
-import {delay, of} from "rxjs";
+import {catchError, delay, map, Observable, of} from "rxjs";
+import {Facts} from "./facts.actions";
 
 export type FactsStateModel = {
-  facts: FactModel[];         // holds available facts
-  status: storageModelStates; // holds facts acquiring status that allows to determine whether they are already loaded or not
-  error?: string;             // holds error message, if error happens (optional)
+    facts: FactModel[];         // holds available facts
+    status: storageModelStates; // holds facts acquiring status that allows to determine whether they are already loaded or not
+    error?: string;             // holds error message, if error happens (optional)
 }
 
 @State<FactsStateModel>({
-  name: 'facts',
-  defaults: {
-    facts: [],
-    status: storageModelStates.PENDING
-  }
+    name: 'facts',
+    defaults: {
+        facts: [],
+        status: storageModelStates.PENDING
+    }
 })
 @Injectable()
 export class FactsState {
 
-  constructor(private http: HttpClient) {
-  }
-
-  @Selector()
-  static get(state: FactsStateModel): FactsStateModel {
-    return state
-  }
-
-  @Action(GetFacts) get(ctx: StateContext<FactsStateModel>): FactsStateModel {
-
-    const state: FactsStateModel = ctx.getState();
-
-    /**
-     * if we have already requested facts from the backend - return their state
-     */
-    if (state.status !== storageModelStates.PENDING) {
-      return state;
+    constructor(private http: HttpClient) {
     }
 
-    /**
-     * set state to "loading"
-     */
-    ctx.setState({facts: [], status: storageModelStates.LOADING})
+    @Selector()
+    static get(state: FactsStateModel): FactsStateModel {
+        return state
+    }
 
-    /**
-     * make http request to get data;
-     * on success - store data to state and mark it as "loaded";
-     * on error - mark state as "error", saving error message
-     * NOTE: in order to "simulate" error, you can change the url to "https://cat-fact.herokuapp.com/facts2"
-     */
-    this.http.get<FactModel[]>('https://cat-fact.herokuapp.com/facts')
-      .subscribe({
-          next: (data: FactModel[]) => {
-            ctx.setState({facts: data, status: storageModelStates.LOADED})
-          },
-          error: (error: unknown) => {
+    @Action(Facts.Get) get(ctx: StateContext<FactsStateModel>): Observable<FactsStateModel>|FactsStateModel {
 
-            ctx.setState({
-              facts: [],
-              status: storageModelStates.ERROR,
-              error: (error instanceof HttpErrorResponse ? error.message : 'Something wend wrong')
-            });
+        const state: FactsStateModel = ctx.getState();
 
-          }
+        /**
+         * if we have already requested facts from the backend - return their state
+         */
+        if (state.status !== storageModelStates.PENDING) {
+            return state;
         }
-      )
 
-    return state;
+        /**
+         * set state to "loading"
+         */
+        ctx.setState({facts: [], status: storageModelStates.LOADING})
 
-  }
+        /**
+         * make http request to get data;
+         * on success - store data to state and mark it as "loaded";
+         * on error - mark state as "error", saving error message
+         * NOTE: in order to "simulate" error, you can change the url to "https://cat-fact.herokuapp.com/facts2"
+         */
+        return this.http.get<FactModel[]>('https://cat-fact.herokuapp.com/facts').pipe(
+            catchError((error: unknown) => {
 
-  @Action(AddFact) add({getState, patchState}: StateContext<FactsStateModel>, {payload}: AddFact): void {
+                ctx.setState({
+                    facts: [],
+                    status: storageModelStates.ERROR,
+                    error: (error instanceof HttpErrorResponse ? error.message : 'Something wend wrong')
+                });
 
-    /**
-     * simulate backend request that will add new fact
-     */
-    of(true).pipe(delay(2000)).subscribe(() => {
-      patchState({facts: [...getState().facts, payload]})
-    });
+                return []
 
-  }
+            }),
+            map(data => {
 
-  @Action(RemoveFact) remove({getState, patchState}: StateContext<FactsStateModel>, {payload}: RemoveFact): void {
+                ctx.setState({facts: data, status: storageModelStates.LOADED});
 
-    /**
-     * simulate backend request that will remove provided fact
-     */
-    of(true).pipe(delay(2000)).subscribe(() => {
+                return ctx.getState()
 
-      patchState({
-        facts: getState().facts.filter(a => a !== payload)
-      })
+            })
+        );
 
-    });
+    }
 
-  }
+    @Action(Facts.Add) add({getState, patchState}: StateContext<FactsStateModel>, {payload}: Facts.Add): void {
+
+        /**
+         * simulate backend request that will add new fact
+         */
+        of(true).pipe(delay(2000)).subscribe(() => {
+            patchState({facts: [...getState().facts, payload]})
+        });
+
+    }
+
+    @Action(Facts.Remove) remove({getState, patchState}: StateContext<FactsStateModel>, {payload}: Facts.Remove): void {
+
+        /**
+         * simulate backend request that will remove provided fact
+         */
+        of(true).pipe(delay(2000)).subscribe(() => {
+
+            patchState({
+                facts: getState().facts.filter(a => a !== payload)
+            })
+
+        });
+
+    }
 
 }

@@ -3,8 +3,8 @@ import {CommonModule} from '@angular/common';
 import {Select, Store} from "@ngxs/store";
 import {Observable} from "rxjs";
 import {FactsState, FactsStateModel} from "../store/facts/facts.state";
-import {GetFacts, RemoveFact} from "../store/facts/facts.actions";
 import {FactModel} from "../models/fact.model";
+import {Facts} from "../store/facts/facts.actions";
 
 @Component({
   selector: 'app-list',
@@ -19,7 +19,7 @@ export class ListComponent implements OnInit {
   @Select(FactsState.get) facts$?: Observable<FactsStateModel>;
 
   constructor(private store: Store) {
-    this.store.dispatch(new GetFacts());
+    this.store.dispatch(new Facts.Get());
   }
 
   ngOnInit(): void {
@@ -30,7 +30,7 @@ export class ListComponent implements OnInit {
 
     this.isDeleting = true;
 
-    this.store.dispatch(new RemoveFact(fact));
+    this.store.dispatch(new Facts.Remove(fact));
 
   }
 
